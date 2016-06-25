@@ -28,5 +28,5 @@ from flask_socketio import SocketIO
 
 if __name__ == '__main__':
     # Run Flask App
-    socketio.run(app, debug=True)
+    socketio.run(app, host='0.0.0.0')
 
