@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block content %}
+    <h2>Welcome to CMB Companion</h2>
+    <p>
+    CMB Companion is a companion app for <a href="http://manuvarkey.github.io/cmbautomiser/">CMB Automiser</a>.
+    This application allows measurements to be recorded for CMB Automiser projects from the comfort of your web browser.
+    {% if settings['project_path'] != '' %}
+    Head over to <a href='/schedule'>Schedule</a> for viewing the project schedule. Measurement items can be modified at <a href='/measurements'>Measurements</a>.
+    {% endif %}
+    </p>
+    
+    {% if settings['project_path'] == '' %}
+    
+    <p>
+    Open a CMB Automiser project file using the form given below to get started.
+    </p>
+    <br>
+    
+    <!--Open project file -->
+    <script type="text/javascript">
+      $(function() {
+
+        // We can attach the `fileselect` event to all file inputs on the page
+        $(document).on('change', ':file', function() {
+          var input = $(this),
+              numFiles = input.get(0).files ? input.get(0).files.length : 1,
+              label = input.val().replace(/\\/g, '/').replace(/.*\//, '');
+          input.trigger('fileselect', [numFiles, label]);
+        });
+
+        // We can watch for our custom `fileselect` event like this
+        $(document).ready( function() {
+            $(':file').on('fileselect', function(event, numFiles, label) {
+
+                var input = $(this).parents('.input-group').find(':text'),
+                    log = numFiles > 1 ? numFiles + ' files selected' : label;
+
+                if( input.length ) {
+                    input.val(log);
+                } else {
+                    if( log ) alert(log);
+                }
+
+            });
+        });
+        
+      });
+    </script>
+    
+    <label>Open a CMB Automiser project file&hellip;</label>
+    <form action = "/index" method = "POST" enctype=multipart/form-data>
+      <div class="input-group">
+        <label class="input-group-btn">
+          <span class="btn btn-default">
+              Browse&hellip; <input type=file name=file style="display: none;">
+          </span>
+        </label>
+        <input type="text" class="form-control" readonly>
+      </div>
+      <br>
+      <div class="alert alert-danger" role="alert">
+        <div class="row">
+          <div class="col-xs-8"><strong>Project closed</strong></div>
+          <div class="col-xs-4" align='right'><input type=submit class='btn btn-success' value="Open Project" name='load' /></div>
+        </div>
+      </div>
+    </form>
+    
+    {% else %}
+    
+    <form action = "/close" method = "POST" enctype=multipart/form-data>
+      <div class="alert alert-success" role="alert">
+        <div class="row">
+          <div class="col-xs-8"><strong>Project open</strong></div>
+          <div class="col-xs-4" align='right'><input type=submit class='btn btn-danger' value="Close Project" name='load' /></div>
+        </div>
+      </div>
+    </form>
+    
+    {% endif %}
+    
+    
+    
+{% endblock %}

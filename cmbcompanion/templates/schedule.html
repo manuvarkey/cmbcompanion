@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block content %}
+
+    <h2>Schedule of rates</h2>
+    <table class="table table-bordered table-hover">
+      <thead>
+        <tr>
+          <th>Agmt.No.</th>
+          <th>Item Description</th>
+          <th>Unit</th>
+          <th>Rate</th>
+          <th>Qty</th>
+          <th>Reference</th>
+          <th>Excess%</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for items in schedule %}
+          <tr>
+            {% for item in items %}
+              <td>{% if item != '0' %}{{item}}{% endif %}</td>
+            {% endfor %}
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  
+{% endblock %}

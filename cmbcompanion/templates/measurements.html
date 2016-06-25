@@ -1,0 +1,178 @@
+{% extends "base.html" %}
+{% block content %}
+<!-- Measurements view -->
+    
+    <h2>List of Measurements</h2>
+    <ol class="breadcrumb">
+      <li><a href="/measurements">#</a></li>
+      {% if meas['cmb_path'] != None and meas['meas_path'] == None and meas['measitem_path'] == None %}
+      <li class="active">{{meas['cmb_name']}}</li>
+      {% elif meas['meas_path'] != None and meas['measitem_path'] == None %}
+      <li><a href="/measurements/{{meas['cmb_path']}}">{{meas['cmb_name']}}</a></li>
+      <li class="active">{{meas['meas_name']}}</li>
+      {% elif meas['measitem_path'] != None %}
+      <li><a href="/measurements/{{meas['cmb_path']}}">{{meas['cmb_name']}}</a></li>
+      <li><a href="/measurements/{{meas['meas_path']}}">{{meas['meas_name']}}</a></li>
+      <li class="active">{{meas['measitem_name']}}</li>
+      {% endif %}
+    </ol>
+    
+    {% if meas['meas_path'] != None and meas['measitem_path'] == None %}
+    <form method="post" id='toolbar_meas'>
+      <!-- Dummy input for passing data -->
+      <input type="text" style="display: none;" id="meas_add" name="add" value="None">
+      <div class="btn-toolbar" role="toolbar" aria-label="...">
+        <div class="btn-group" role="group" aria-label="...">
+          <div class="btn-group" role="group">
+            <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              Add
+              <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu">
+              {% for module_name, module_desc in settings['module_group'] %}
+              <!-- Modify dummy input and call form -->
+              <li><a href="javascript:{}" onclick="document.getElementById('meas_add').value='{{module_name}}'; document.getElementById('toolbar_meas').submit(); return false;">{{module_desc}}</a></li>
+              {% endfor %}
+            </ul>
+          </div>
+          <input type="submit" class="btn btn-default" name='edit' value=Edit>
+        </div>
+        <div class="btn-group" role="group" aria-label="...">
+          <input type="submit" class="btn btn-default" name='undo' value=&#8617;>
+          <input type="submit" class="btn btn-default" name='redo' value=&#8618;>
+        </div>
+        <div class="btn-group" role="group" aria-label="...">
+          <input type="submit" class="btn btn-danger" name='delete' value=Del>
+        </div>
+      </div>
+    </form>
+    <br>
+    
+    {% endif %}
+    
+    {% if meas['measitem_path'] == None %}
+
+    <div class="list-group">
+      {% for path,item in meas['items'] %}
+      <a href="/measurements/{{path[0:2]}}/{{path}}" class="list-group-item {% if meas['active'] == path %} active {% endif %}" id="{{path}}">{{item}}</a>
+      {% endfor %}
+    </div>
+
+    {% else %}
+    
+    <div class="panel panel-default">
+      <div class="panel-heading">Item Numbers</div>
+      <div class="panel-body">
+        <!-- Itemnos -->
+        {% set count = 0 %}
+        {% for itemno,remark in meas['item_itemnos_group'] %}
+          <div class="row">
+            <div class="col-xs-3">
+              <div class="input-group">
+                <span class="input-group-addon" id="basic-addon1">@</span>
+                <input type="text" class="form-control" onchange="socket.emit('measitem_header_value_changed',{item_remark: {{count}}, value: this.value });" aria-label="..." value="{{remark}}">
+              </div>
+            </div>
+            <div class="col-xs-9">
+              <div class="input-group">
+                <span class="input-group-addon" id="basic-addon1">#</span>
+                <input type="text" class="form-control" value="{{itemno}}" disabled onchange="socket.emit('measitem_header_value_changed',{itemno: {{count}}, value: this.value });" id='itemno_{{count}}'>
+                <span class="input-group-btn">
+                  <button class='btn btn-default' type="button" data-toggle="modal" data-target="#modal_sch_{{count}}">Select&hellip;</button>
+                <button class='btn btn-danger' type="button" onclick="document.getElementById('itemno_{{count}}').value='None'; socket.emit('measitem_header_value_changed',{itemno: {{count}}, value: 'None' });">Del</button>
+                </span>
+              </div><!-- /input-group -->
+            </div>
+          </div>
+          {% include 'measurementitem_selectschedule.html' %}
+          {% set count = count + 1 %}
+        {% endfor %}
+        <br>
+        <!-- Remark -->
+        <div class="input-group">
+          <span class="input-group-addon" id="basic-addon1">Remark</span>
+          <input type="text" class="form-control" placeholder="Remark" aria-describedby="basic-addon1" value="{{meas['item_remark']}}" onchange="socket.emit('measitem_header_value_changed',{remark: this.value});">
+        </div>
+      </div>
+    </div>
+    
+    <div class="panel panel-default">
+      <div class="panel-heading">Item Measurements</div>
+      <div class="panel-body">
+        <table class="table table-bordered table-hover">
+        <thead>
+          <tr>
+            {% for caption in meas['measitem_captions'] %}
+            <th>{{caption}}</th>
+            {% endfor %}
+          </tr>
+        </thead>
+        <tbody>
+          {% set row = 0 %}
+          {% for items in meas['measitem_table'] %}
+            <tr>
+              <td><b>{{row+1}}</b></td>
+              {% set column = 0 %}
+              {% for item in items %}
+                {% if meas['measitem_columntypes'][column] != 4 %}
+                  <td contenteditable="true" name='editable_field' onblur='onItemValueChanged(this,{{row}},{{column}})'>{% if item != '0' %}{{item}}{% endif %}</td>
+                {% else %}
+                  <td id='cutfunc_{{row}}_{{column}}'>
+                    <script type="text/javascript" charset="utf-8">
+                      socket.on("meas_item_update", function(items){document.getElementById('cutfunc_{{row}}_{{column}}').innerHTML = items[{{row}}][{{column}}];});
+                    </script>
+                  </td>
+                {% endif %}
+                {% set column = column + 1 %}
+              {% endfor %}
+            </tr>
+            {% set row = row + 1 %}
+          {% endfor %}
+        </tbody>
+      </table>
+      </div>
+    </div>
+    
+    <form method="post" id='toolbar_measitem'>
+      <div class="btn-toolbar pull-right" role="toolbar" aria-label="...">
+        <div class="btn-group" role="group" aria-label="...">
+          <input type="submit" class="btn btn-default" name='measitem_add' value=+>
+          <input type="button" class="btn btn-default" data-toggle="modal" data-target="#myModal" name='add_multiple' value='+N'>
+        </div>
+        <div class="btn-group" role="group" aria-label="...">
+          <input type="submit" class="btn btn-danger" name='measitem_delete' value='Del'>
+        </div>
+        <div class="btn-group" role="group" aria-label="...">
+          <input type="button" class="btn btn-default"  onclick="socket.emit('measitem_save');" value='Save'>
+        </div>
+      </div>
+    </form>
+    <br>
+    
+    {% include 'measurementitemadd.html' %}
+    
+    <script type="text/javascript" charset="utf-8">
+    // Editable value changed
+    function onItemValueChanged(object, row, column)
+    {
+      socket.emit('measitem_value_changed', {html: object.innerHTML, row: row, column: column});
+      socket.emit('measitem_page_refresh');
+    }
+    
+    // Force a page refresh
+    socket.emit('measitem_page_refresh');
+    
+    // Scroll to end
+    document.location.hash = '#toolbar_measitem';
+    </script>
+    
+    {% endif %}
+    
+    <!-- Scrool into view if scroll set -->
+    {% if meas['active'] %}
+    <script type="text/javascript" charset="utf-8">
+        document.location.hash = '#' + '{{ meas['active']}}';
+    </script>
+    {% endif %}
+  
+{% endblock %}

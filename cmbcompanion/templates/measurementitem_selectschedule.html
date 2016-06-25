@@ -1,0 +1,27 @@
+<!-- Modal -->
+    <div id="modal_sch_{{count}}" class="modal fade" role="dialog">
+      <div class="modal-dialog">
+
+        <!-- Modal content-->
+          <div class="modal-content">
+            <div class="modal-header">
+              <button type="button" class="close" data-dismiss="modal">&times;</button>
+              <h4 class="modal-title">Select item</h4>
+            </div>
+            <div class="modal-body">
+              <p> Select an item from the list given below </p><br>
+              <div class="list-group">
+                {% for sch_item in meas['item_schedule'] %}
+                <a href="#" class="list-group-item" onclick="document.getElementById('itemno_{{count}}').value='{{sch_item[0]}}'; socket.emit('measitem_header_value_changed',{itemno: {{count}}, value: '{{sch_item[0]}}' });" data-dismiss="modal">
+                  <h4 class="list-group-item-heading">{{sch_item[0]}}</h4>
+                  <p class="list-group-item-text">{{sch_item[1]}}</p>
+                </a>
+                {% endfor %}
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+          </div>
+      </div>
+    </div>

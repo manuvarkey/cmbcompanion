@@ -1,0 +1,15 @@
+.table {
+font-size: 14px
+}
+
+@font-face {
+  font-family: 'MyFont';
+  src:  url('../fonts/font.woff') format('woff');
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'MyFont';
+}
+p, div {
+    font-family: 'MyFont';
+}

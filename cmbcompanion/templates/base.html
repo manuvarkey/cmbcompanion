@@ -1,0 +1,77 @@
+<html>
+  <head>
+    <link href="/static/css/bootstrap.min.css" rel="stylesheet" media="screen">
+    <link href="/static/css/bootstrap-responsive.min.css" rel="stylesheet">
+    <link href="/static/css/bootstrap_override.css" rel="stylesheet" media="screen">
+    <script src="http://code.jquery.com/jquery-latest.js"></script>
+    <script src="/static/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.6/socket.io.min.js"></script>
+    <script type="text/javascript" charset="utf-8">
+        var socket = io.connect('http://' + document.domain + ':' + location.port);
+        socket.on('connect', function() {
+            socket.emit('on_connect', {message: 'Established asynchronous communication'});
+        });
+    </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {% if title %}
+    <title>{{ title }} - CMB Companion</title>
+    {% else %}
+    <title>CMB Companion</title>
+    {% endif %}
+  </head>
+  
+  <body>
+      <div class="container">
+        <nav class="navbar navbar-default">
+          <div class="container-fluid">
+            <!-- Brand and toggle get grouped for better mobile display -->
+            <div class="navbar-header">
+              <a class="navbar-brand" href="/index">
+                <img alt="CMB Companion" style="height:50px;margin-top:-15px"  src="/static/images/cmbautomiser.png">
+              </a>
+            </div>
+
+            <!-- Collect the nav links -->
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+              <ul class="nav navbar-nav">
+                <li {% if active == 'index' %}class="active"{% endif %}><a href="/index">Home</a></li>
+                {% if settings['project_path'] != '' %}
+                <li {% if active == 'schedule' %}class="active"{% endif %}><a href="/schedule">Schedule</a></li>
+                <li {% if active == 'measurements' %}class="active"{% endif %}><a href="/measurements">Measurements</a></li>
+                {% endif %}
+              </ul>
+              <ul class="nav navbar-nav navbar-right">
+                <li {% if active == 'contactus' %}class="active"{% endif %}><a href="/contactus">About us</a></li>
+                {% if settings['project_path'] != '' %}
+                <li class="dropdown">
+                  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Project<span class="caret"></span></a>
+                  <ul class="dropdown-menu">
+                    <li><a href="/save">Save</a></li>
+                    <li><a href="/download">Download</a></li>
+                  </ul>
+                </li>
+                {% endif %}
+              </ul>
+            </div><!-- /.navbar-collapse -->
+          </div><!-- /.container-fluid -->
+        </nav>
+        <!-- Display falshed messages -->
+        {% for category, message in get_flashed_messages(with_categories=True) %}
+          <div class="alert alert-{{category}} alert-dismissible" role="alert">
+             <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            {{message}}
+          </div>
+        {% endfor %}
+        
+        <div class="container-fluid">
+          {% block content %}{% endblock %}
+        </div>
+        
+        <hr>
+        <footer>
+          <p>&copy; 2015 Manu Varkey, CPWD</p>
+        </footer>
+      </div>
+      
+  </body>
+</html>
